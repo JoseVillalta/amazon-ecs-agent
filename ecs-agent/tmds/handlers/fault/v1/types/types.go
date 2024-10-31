@@ -19,6 +19,8 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
 	"github.com/aws/aws-sdk-go/aws"
 )
 
@@ -32,6 +34,8 @@ const (
 	missingRequiredFieldError = "required parameter %s is missing"
 	MissingRequestBodyError   = "required request body is missing"
 	invalidValueError         = "invalid value %s for parameter %s"
+	TrafficTypeIngress        = "ingress"
+	TrafficTypeEgress         = "egress"
 )
 
 type NetworkFaultRequest interface {
@@ -43,6 +47,9 @@ type NetworkBlackholePortRequest struct {
 	Port        *uint16 `json:"Port"`
 	Protocol    *string `json:"Protocol"`
 	TrafficType *string `json:"TrafficType"`
+	// SourcesToFilter is a list including IPv4 addresses or IPv4 CIDR blocks that will be excluded from the
+	// network latency fault.
+	SourcesToFilter []*string `json:"SourcesToFilter,omitempty"`
 }
 
 type NetworkFaultInjectionResponse struct {
@@ -65,11 +72,27 @@ func (request NetworkBlackholePortRequest) ValidateRequest() error {
 		return fmt.Errorf(invalidValueError, *request.Protocol, "Protocol")
 	}
 
-	if *request.TrafficType != "ingress" && *request.TrafficType != "egress" {
+	if *request.TrafficType != TrafficTypeIngress && *request.TrafficType != TrafficTypeEgress {
 		return fmt.Errorf(invalidValueError, *request.TrafficType, "TrafficType")
+	}
+	if err := validateNetworkFaultRequestSources(request.SourcesToFilter, "SourcesToFilter"); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+// Adds a source to SourcesToFilter
+func (request *NetworkBlackholePortRequest) AddSourceToFilterIfNotAlready(source string) {
+	if request.SourcesToFilter == nil {
+		request.SourcesToFilter = []*string{}
+	}
+	for _, src := range request.SourcesToFilter {
+		if src != nil && *src == source {
+			return
+		}
+	}
+	request.SourcesToFilter = append(request.SourcesToFilter, aws.String(source))
 }
 
 func (request NetworkBlackholePortRequest) ToString() string {
@@ -180,19 +203,29 @@ func NewNetworkFaultInjectionErrorResponse(err string) NetworkFaultInjectionResp
 
 func validateNetworkFaultRequestSources(sources []*string, sourcesType string) error {
 	for _, element := range sources {
-		elementStr := aws.StringValue(element)
-		validIp := true
-		if net.ParseIP(elementStr) == nil {
-			validIp = false
-		}
-		validIpCIDRBlock := true
-		if _, _, err := net.ParseCIDR(elementStr); err != nil {
-			validIpCIDRBlock = false
-		}
-
-		if !validIpCIDRBlock && !validIp {
-			return fmt.Errorf(invalidValueError, elementStr, sourcesType)
+		if err := validateNetworkFaultRequestSource(aws.StringValue(element), sourcesType); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func validateNetworkFaultRequestSource(source string, sourceType string) error {
+	ip := net.ParseIP(source)
+	if ip != nil && ip.To4() != nil {
+		return nil // IPv4 successful
+	}
+
+	_, ipnet, err := net.ParseCIDR(source)
+	if err == nil && ipnet.IP.To4() != nil {
+		return nil // IPv4 CIDR successful
+	}
+	if err != nil {
+		logger.Info("Failed to parse fault source as IPv4 CIDR block", logger.Fields{
+			"source":    source,
+			field.Error: err,
+		})
+	}
+
+	return fmt.Errorf(invalidValueError, source, sourceType)
 }
