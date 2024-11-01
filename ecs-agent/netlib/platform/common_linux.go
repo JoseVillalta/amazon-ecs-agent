@@ -533,7 +533,7 @@ func (c *common) generateNetworkConfigFilesForDebugPlatforms(
 		return errors.Wrap(err, "unable to create hostname file for netns")
 	}
 
-	data := c.nsUtil.BuildResolvConfig([]string{"8.8.8.8"},
+	data := c.nsUtil.BuildResolvConfig([]string{"127.0.0.1"},
 		[]string{"us-west-2.compute.internal"})
 
 	err = c.ioutil.WriteFile(
