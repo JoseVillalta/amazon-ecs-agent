@@ -121,6 +121,40 @@ func createBridgePluginConfig(netNSPath string) ecscni.PluginConfig {
 	return bridgeConfig
 }
 
+// createBridgePluginConfig constructs the configuration object for bridge plugin
+func createDaemonBridgePluginConfig(netNSPath string) ecscni.PluginConfig {
+	cniConfig := ecscni.CNIConfig{
+		NetNSPath:      netNSPath,
+		CNISpecVersion: cniSpecVersion,
+		CNIPluginName:  BridgePluginName,
+	}
+
+	_, routeIPNet, _ := net.ParseCIDR(AgentEndpoint)
+	route := &types.Route{
+		Dst: *routeIPNet,
+	}
+
+	ipamConfig := &ecscni.IPAMConfig{
+		CNIConfig: ecscni.CNIConfig{
+			NetNSPath:      netNSPath,
+			CNISpecVersion: cniSpecVersion,
+			CNIPluginName:  IPAMPluginName,
+		},
+		IPV4Subnet: ECSSubNet,
+		IPV4Routes: []*types.Route{route},
+		ID:         netNSPath,
+	}
+
+	// Invoke the bridge plugin and ipam plugin
+	bridgeConfig := &ecscni.BridgeConfig{
+		CNIConfig: cniConfig,
+		Name:      "emi-bridge", // TODO create a const and make this a parameter.
+		IPAM:      *ipamConfig,
+	}
+
+	return bridgeConfig
+}
+
 func createAppMeshPluginConfig(
 	netNSPath string,
 	cfg *appmesh.AppMesh,

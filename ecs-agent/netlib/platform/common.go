@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 
 	"github.com/containernetworking/cni/pkg/types"
 )
@@ -91,4 +92,10 @@ func (c *common) interfacesMACToName() (map[string]string, error) {
 // HandleHostMode by default we do not want to support host mode.
 func (c *common) HandleHostMode() error {
 	return errors.New("invalid platform for host mode")
+}
+
+// ConfigureDaemonNetNS configures a network namespace for workloads running as daemons.
+// This is an internal networking mode available in EMI (ECS Managed Instances) only.
+func (c *common) ConfigureDaemonNetNS(netNS *tasknetworkconfig.NetworkNamespace) error {
+	return errors.New("daemon network namespaces are not supported in this platform")
 }

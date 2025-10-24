@@ -131,7 +131,7 @@ func testManagedLinuxBranchENIConfiguration(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestBuildDefaultNetworkNamespace(t *testing.T) {
+func TestBuildDefaultNetworkNamespaceConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		taskID     string
@@ -278,7 +278,7 @@ func TestBuildDefaultNetworkNamespace(t *testing.T) {
 				common: *commonPlatform,
 			}
 
-			namespaces, err := ml.buildDefaultNetworkNamespace(tt.taskID)
+			namespaces, err := ml.buildDefaultNetworkNamespaceConfig(tt.taskID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
