@@ -263,13 +263,35 @@ func TaskStatsHandler(
 		utils.RequestTypeTaskStats, taskStatsErrorPrefix)
 }
 
-// Returns an HTTP handler for v4 task stats endpoint
+// Returns an HTTP handler for v4 tasks stats endpoint
 func TasksStatsHandler(
 	agentState state.AgentState,
 	metricsFactory metrics.EntryFactory,
 ) func(http.ResponseWriter, *http.Request) {
-	return statsHandler(agentState.GetTaskStats, metricsFactory,
-		utils.RequestTypeTasksStats, taskStatsErrorPrefix)
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get stats for all tasks
+		stats, err := agentState.GetTasksStats("")
+		if err != nil {
+			logger.Error("Failed to get v4 tasks stats", logger.Fields{
+				field.Error: err,
+			})
+
+			responseCode, responseBody := getStatsErrorResponse("", err, "V4 tasks stats handler")
+			utils.WriteJSONResponse(w, responseCode, responseBody, utils.RequestTypeTasksStats)
+
+			if utils.Is5XXStatus(responseCode) {
+				metricsFactory.New(metrics.InternalServerErrorMetricName).Done(err)
+			}
+
+			return
+		}
+
+		// Write stats response
+		logger.Info("Writing response for v4 tasks stats", logger.Fields{
+			"task_count": len(stats),
+		})
+		utils.WriteJSONResponse(w, http.StatusOK, stats, utils.RequestTypeTasksStats)
+	}
 }
 
 // Generic function that returns an HTTP handler for container or task stats endpoint
