@@ -102,6 +102,8 @@ func (nb *networkBuilder) Start(
 		err = nb.startAWSVPC(ctx, taskID, netNS)
 	case types.NetworkModeHost:
 		err = nb.platformAPI.HandleHostMode()
+	case "daemon-bridge":
+		err = nb.platformAPI.ConfigureDaemonNetNS(netNS)
 	default:
 		err = errors.New("invalid network mode: " + string(mode))
 	}

@@ -416,25 +416,19 @@ func (m *managedLinux) configureDaemonNetNS(ctx context.Context, taskID string, 
 		return errors.New("invalid transition state encountered: " + netNS.DesiredState.String())
 	}
 
-	// Create the network namespace and setup DNS configuration within the netns.
-	// This has to happen before any CNI plugin is executed.
-	if netNS.KnownState == status.NetworkNone &&
-		netNS.DesiredState == status.NetworkReadyPull {
+	logger.Debug("Creating netns: " + netNS.Path)
+	// Create network namespace on the host.
+	err = m.CreateNetNS(netNS.Path)
+	if err != nil {
+		return err
+	}
 
-		logger.Debug("Creating netns: " + netNS.Path)
-		// Create network namespace on the host.
-		err = m.CreateNetNS(netNS.Path)
-		if err != nil {
-			return err
-		}
+	logger.Debug("Creating DNS config files")
 
-		logger.Debug("Creating DNS config files")
-
-		// Create necessary DNS config files for the netns.
-		err = m.CreateDNSConfig(taskID, netNS)
-		if err != nil {
-			return err
-		}
+	// Create necessary DNS config files for the netns.
+	err = m.CreateDNSConfig(taskID, netNS)
+	if err != nil {
+		return err
 	}
 
 	// Create MI-Bridge
