@@ -396,56 +396,79 @@ func (m *managedLinux) buildHostDaemonNamespaceConfig(taskID string) ([]*tasknet
 	}
 
 	netInt.Default = true
-	netInt.DesiredStatus = status.NetworkReady
-	netInt.KnownStatus = status.NetworkReady
-	daemonNamespace, err := tasknetworkconfig.NewNetworkNamespace(netNSName, netNSPath, 0, nil, netInt)
+	netInt.DesiredStatus = status.NetworkReadyPull
+	netInt.KnownStatus = status.NetworkNone
+	daemonNamespace, err := tasknetworkconfig.NewNetworkNamespace(netNSName, netNSPath,
+		0, nil, netInt)
+	if err != nil {
+		return nil, err
+	}
+	daemonNamespace = daemonNamespace.WithNetworkMode("daemon-bridge")
 	if err != nil {
 		logger.Error("Error building default network namespace for host mode", logger.Fields{
 			loggerfield.Error: err,
 		})
 		return nil, err
 	}
-	daemonNamespace.KnownState = status.NetworkReady
-	daemonNamespace.DesiredState = status.NetworkReady
+	daemonNamespace.KnownState = status.NetworkNone
+	daemonNamespace.DesiredState = status.NetworkReadyPull
 	return []*tasknetworkconfig.NetworkNamespace{daemonNamespace}, nil
-}
-
-func (m *managedLinux) configureDaemonNetNS(ctx context.Context, taskID string, netNS *tasknetworkconfig.NetworkNamespace) error {
-	var err error
-	if netNS.DesiredState == status.NetworkDeleted {
-		return errors.New("invalid transition state encountered: " + netNS.DesiredState.String())
-	}
-
-	logger.Debug("Creating netns: " + netNS.Path)
-	// Create network namespace on the host.
-	err = m.CreateNetNS(netNS.Path)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("Creating DNS config files")
-
-	// Create necessary DNS config files for the netns.
-	err = m.CreateDNSConfig(taskID, netNS)
-	if err != nil {
-		return err
-	}
-
-	// Create MI-Bridge
-	var cniNetConf []ecscni.PluginConfig
-	cniNetConf = append(cniNetConf, createDaemonBridgePluginConfig(netNS.Path))
-	add := true
-
-	_, err = m.common.executeCNIPlugin(ctx, add, cniNetConf...)
-	if err != nil {
-		err = errors.Wrap(err, "failed to setup deamon network namespace bridge")
-	}
-
-	return err
 }
 
 // ConfigureDaemonNetNS will create a network namespace using the host ENI and host dns configuration.
 // It will contain a loopback interface and a bridge to the internal ECS subnet.
 func (m *managedLinux) ConfigureDaemonNetNS(netNS *tasknetworkconfig.NetworkNamespace) error {
-	return m.configureDaemonNetNS(context.Background(), netNS.Path, netNS)
+	ctx := context.Background()
+	var err error
+	if netNS.DesiredState == status.NetworkDeleted {
+		return errors.New("invalid transition state encountered: " + netNS.DesiredState.String())
+	}
+	if netNS.KnownState == status.NetworkNone &&
+		netNS.DesiredState == status.NetworkReadyPull {
+
+		logger.Debug("Creating netns: " + netNS.Path)
+		// Create network namespace on the host.
+		err = m.CreateNetNS(netNS.Path)
+		if err != nil {
+			return err
+		}
+
+		logger.Debug("Creating DNS config files")
+
+		// Create necessary DNS config files for the netns.
+		err = m.CreateDNSConfig(netNS.Path, netNS)
+		if err != nil {
+			return err
+		}
+
+		// Create MI-Bridge
+		var cniNetConf []ecscni.PluginConfig
+		cniNetConf = append(cniNetConf, createDaemonBridgePluginConfig(netNS.Path))
+		add := true
+
+		_, err = m.common.executeCNIPlugin(ctx, add, cniNetConf...)
+		if err != nil {
+			err = errors.Wrap(err, "failed to setup deamon network namespace bridge")
+		}
+
+	}
+
+	return err
+}
+
+// StopDaemonNetNS stops and cleans up a daemon network namespace.
+func (m *managedLinux) StopDaemonNetNS(ctx context.Context, netNS *tasknetworkconfig.NetworkNamespace) error {
+
+	// For now remove the bridge only.
+	// Deleting the namespace should happen only when we have no more tasks running.
+	var cniNetConf []ecscni.PluginConfig
+	cniNetConf = append(cniNetConf, createDaemonBridgePluginConfig(netNS.Path))
+	add := false
+
+	_, err := m.common.executeCNIPlugin(ctx, add, cniNetConf...)
+	if err != nil {
+		err = errors.Wrap(err, "failed to stop deamon network namespace bridge")
+	}
+
+	return err
 }

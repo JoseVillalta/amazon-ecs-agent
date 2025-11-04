@@ -99,3 +99,9 @@ func (c *common) HandleHostMode() error {
 func (c *common) ConfigureDaemonNetNS(netNS *tasknetworkconfig.NetworkNamespace) error {
 	return errors.New("daemon network namespaces are not supported in this platform")
 }
+
+// StopDaemonNetNS stops and cleans up a daemon network namespace.
+// This is an internal networking mode available in EMI (ECS Managed Instances) only.
+func (c *common) StopDaemonNetNS(ctx context.Context, netNS *tasknetworkconfig.NetworkNamespace) error {
+	return errors.New("daemon network namespaces are not supported in this platform")
+}

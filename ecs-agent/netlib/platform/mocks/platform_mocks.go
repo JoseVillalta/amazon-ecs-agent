@@ -208,3 +208,17 @@ func (mr *MockAPIMockRecorder) HandleHostMode() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleHostMode", reflect.TypeOf((*MockAPI)(nil).HandleHostMode))
 }
+
+// StopDaemonNetNS mocks base method.
+func (m *MockAPI) StopDaemonNetNS(arg0 context.Context, arg1 *tasknetworkconfig.NetworkNamespace) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StopDaemonNetNS", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StopDaemonNetNS indicates an expected call of StopDaemonNetNS.
+func (mr *MockAPIMockRecorder) StopDaemonNetNS(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopDaemonNetNS", reflect.TypeOf((*MockAPI)(nil).StopDaemonNetNS), arg0, arg1)
+}

@@ -134,6 +134,10 @@ func (nb *networkBuilder) Stop(ctx context.Context, mode types.NetworkMode, task
 		err = nb.stopAWSVPC(ctx, netNS)
 	case types.NetworkModeHost:
 		err = nb.platformAPI.HandleHostMode()
+	case "daemon-bridge":
+		// Adding extra logging to help with debug TODO remove later.
+		logger.Info("Stopping Daemon network namespace setup", logFields)
+		err = nb.platformAPI.StopDaemonNetNS(ctx, netNS)
 	default:
 		err = errors.New("invalid network mode: " + string(mode))
 	}

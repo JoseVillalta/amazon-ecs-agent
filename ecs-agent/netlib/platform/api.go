@@ -82,6 +82,10 @@ type API interface {
 	// ConfigureDaemonNetNS configures a network namespace for workloads running as daemons.
 	// This is an internal networking mode available in EMI (ECS Managed Instances) only.
 	ConfigureDaemonNetNS(netNS *tasknetworkconfig.NetworkNamespace) error
+
+	// StopDaemonNetNS stops and cleans up a daemon network namespace.
+	// This is an internal networking mode available in EMI (ECS Managed Instances) only.
+	StopDaemonNetNS(ctx context.Context, netNS *tasknetworkconfig.NetworkNamespace) error
 }
 
 // Config contains platform-specific data.

@@ -53,7 +53,8 @@ const (
 	VPCTunnelInterfaceTypeGeneve = "geneve"
 	VPCTunnelInterfaceTypeTap    = "tap"
 
-	BridgeInterfaceName = "fargate-bridge"
+	BridgeInterfaceName       = "fargate-bridge"
+	ManagedInstanceBridgeName = "mi-bridge"
 
 	IPAMDataFileName = "eni-ipam.db"
 
@@ -148,7 +149,7 @@ func createDaemonBridgePluginConfig(netNSPath string) ecscni.PluginConfig {
 	// Invoke the bridge plugin and ipam plugin
 	bridgeConfig := &ecscni.BridgeConfig{
 		CNIConfig: cniConfig,
-		Name:      "emi-bridge", // TODO create a const and make this a parameter.
+		Name:      ManagedInstanceBridgeName,
 		IPAM:      *ipamConfig,
 	}
 
