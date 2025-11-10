@@ -42,6 +42,7 @@ const (
 	IPAMPluginName           = "ecs-ipam"
 	AppMeshPluginName        = "aws-appmesh"
 	ServiceConnectPluginName = "ecs-serviceconnect"
+	PortMapPluginName        = "portmap"
 
 	VPCBranchENIPluginName        = "vpc-branch-eni"
 	vpcBranchENICNISpecVersion    = "0.3.1"
@@ -269,4 +270,22 @@ func createServiceConnectCNIConfig(
 	enableIPV4 := len(iface.IPV4Addresses) > 0
 	enableIPV6 := len(iface.IPV6Addresses) > 0
 	return ecscni.NewServiceConnectCNIConfig(cniConfig, scConfig, enableIPV4, enableIPV6)
+}
+
+func createPortMapPluginConfig(
+	netNSPath string,
+	portMaps []ecscni.PortMapEntry,
+) ecscni.PluginConfig {
+	cniConfig := ecscni.CNIConfig{
+		NetNSPath:      netNSPath,
+		CNISpecVersion: cniSpecVersion,
+		CNIPluginName:  PortMapPluginName,
+	}
+
+	portMapConfig := &ecscni.PortMapConfig{
+		CNIConfig: cniConfig,
+	}
+	portMapConfig.RuntimeConfig.PortMaps = portMaps
+
+	return portMapConfig
 }

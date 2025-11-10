@@ -61,7 +61,7 @@ func (m *managedLinux) BuildTaskNetworkConfiguration(
 			return nil, errors.Wrap(err, "failed to create network namespace with host eni")
 		}
 	case "daemon-bridge":
-		netNSs, err = m.buildHostDaemonNamespaceConfig(taskID)
+		netNSs, err = m.buildHostDaemonNamespaceConfig(taskID, taskPayload)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create daemon host namespace")
 		}
@@ -312,7 +312,7 @@ func (m *managedLinux) HandleHostMode() error {
 	return nil
 }
 
-func (m *managedLinux) buildHostDaemonNamespaceConfig(taskID string) ([]*tasknetworkconfig.NetworkNamespace, error) {
+func (m *managedLinux) buildHostDaemonNamespaceConfig(taskID string, taskPayload *ecsacs.Task) ([]*tasknetworkconfig.NetworkNamespace, error) {
 	macAddress, err1 := m.client.GetMetadata(MacResource)
 	ec2ID, err2 := m.client.GetMetadata(InstanceIDResource)
 	macToNames, err3 := m.common.interfacesMACToName()
@@ -412,6 +412,20 @@ func (m *managedLinux) buildHostDaemonNamespaceConfig(taskID string) ([]*tasknet
 	}
 	daemonNamespace.KnownState = status.NetworkNone
 	daemonNamespace.DesiredState = status.NetworkReadyPull
+
+	// Extract port mappings from task payload
+	var portMaps []ecscni.PortMapEntry
+	for _, container := range taskPayload.Containers {
+		for _, portMapping := range container.PortMappings {
+			portMaps = append(portMaps, ecscni.PortMapEntry{
+				HostPort:      int(aws.ToInt64(portMapping.HostPort)),
+				ContainerPort: int(aws.ToInt64(portMapping.ContainerPort)),
+				Protocol:      aws.ToString(portMapping.Protocol),
+			})
+		}
+	}
+	daemonNamespace.PortMaps = portMaps
+
 	return []*tasknetworkconfig.NetworkNamespace{daemonNamespace}, nil
 }
 
@@ -444,6 +458,9 @@ func (m *managedLinux) ConfigureDaemonNetNS(netNS *tasknetworkconfig.NetworkName
 		// Create MI-Bridge
 		var cniNetConf []ecscni.PluginConfig
 		cniNetConf = append(cniNetConf, createDaemonBridgePluginConfig(netNS.Path))
+		if len(netNS.PortMaps) > 0 {
+			cniNetConf = append(cniNetConf, createPortMapPluginConfig(netNS.Path, netNS.PortMaps))
+		}
 		add := true
 
 		_, err = m.common.executeCNIPlugin(ctx, add, cniNetConf...)

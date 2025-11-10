@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
@@ -43,6 +44,9 @@ type NetworkNamespace struct {
 
 	// ServiceConnectConfig holds ServiceConnect related parameters for the particular netns.
 	ServiceConnectConfig *serviceconnect.ServiceConnectConfig
+
+	// PortMaps holds port mapping entries for the particular netns.
+	PortMaps []ecscni.PortMapEntry
 
 	KnownState   status.NetworkStatus
 	DesiredState status.NetworkStatus

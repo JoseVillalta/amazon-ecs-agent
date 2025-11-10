@@ -245,6 +245,16 @@ build-ecs-cni-plugins:
 		"amazon/amazon-ecs-build-ecs-cni-plugins:make"
 	@echo "Built amazon-ecs-cni-plugins successfully."
 
+build-portmap-plugin: .out-stamp
+	@docker run --rm --net=none \
+		-e GO111MODULE=on \
+		-u "$(USERID)" \
+		-v "$(PWD)/out/amazon-ecs-cni-plugins:/out" \
+		-w /go/src/github.com/containernetworking/plugins \
+		golang:$(GO_VERSION) \
+		sh -c "git clone https://github.com/containernetworking/plugins.git . && go build -o /out/portmap ./plugins/meta/portmap"
+	@echo "Built portmap plugin successfully."
+
 build-vpc-cni-plugins:
 	@docker build --build-arg GOARCH=$(GOARCH) --build-arg GO_VERSION=$(GO_VERSION) -f $(VPC_CNI_REPOSITORY_DOCKER_FILE) -t "amazon/amazon-ecs-build-vpc-cni-plugins:make" .
 	docker run --rm --net=none \
@@ -257,7 +267,7 @@ build-vpc-cni-plugins:
 		"amazon/amazon-ecs-build-vpc-cni-plugins:make"
 	@echo "Built amazon-vpc-cni-plugins successfully."
 
-cni-plugins: get-cni-sources .out-stamp build-ecs-cni-plugins build-vpc-cni-plugins
+cni-plugins: get-cni-sources .out-stamp build-ecs-cni-plugins build-vpc-cni-plugins build-portmap-plugin
 	mv $(PWD)/out/amazon-ecs-cni-plugins/* $(PWD)/out/cni-plugins
 	mv $(PWD)/out/amazon-vpc-cni-plugins/* $(PWD)/out/cni-plugins
 	@echo "Built all cni plugins successfully."
