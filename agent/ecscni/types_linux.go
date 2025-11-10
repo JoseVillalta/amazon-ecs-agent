@@ -19,6 +19,10 @@ package ecscni
 import cniTypes "github.com/containernetworking/cni/pkg/types"
 
 const (
+	// CNI Plugin Names and Interface Names
+	// These constants define the binary names of CNI plugins used by ECS Agent
+	// and default interface names created in container namespaces.
+	
 	// defaultVethName is the name of veth pair name in the container namespace
 	defaultVethName = "ecs-eth0"
 	// defaultENIName is the name of eni interface name in the container namespace
@@ -44,6 +48,10 @@ const (
 	ECSBranchENIPluginName = "vpc-branch-eni"
 	// ECSServiceConnectPluginName is the binary of the service connect plugin
 	ECSServiceConnectPluginName = "ecs-serviceconnect"
+	// ECSPortMapperPluginName is the binary of the portmapper plugin
+	// This plugin handles port forwarding from host ports to container ports
+	// and is used as a chained CNI plugin that depends on previous plugin results
+	ECSPortMapperPluginName = "ecs-portmapper"
 	// NetnsFormat is used to construct the path to cotainer network namespace
 	NetnsFormat = "/host/proc/%s/ns/net"
 	// Starting with CNI plugin v0.8.0 (this PR https://github.com/containernetworking/cni/pull/698)
