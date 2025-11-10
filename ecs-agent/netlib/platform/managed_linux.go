@@ -414,10 +414,10 @@ func (m *managedLinux) buildHostDaemonNamespaceConfig(taskID string, taskPayload
 	daemonNamespace.DesiredState = status.NetworkReadyPull
 
 	// Extract port mappings from task payload
-	var portMaps []ecscni.PortMapEntry
+	var portMaps []tasknetworkconfig.PortMapEntry
 	for _, container := range taskPayload.Containers {
 		for _, portMapping := range container.PortMappings {
-			portMaps = append(portMaps, ecscni.PortMapEntry{
+			portMaps = append(portMaps, tasknetworkconfig.PortMapEntry{
 				HostPort:      int(aws.ToInt64(portMapping.HostPort)),
 				ContainerPort: int(aws.ToInt64(portMapping.ContainerPort)),
 				Protocol:      aws.ToString(portMapping.Protocol),

@@ -26,6 +26,7 @@ import (
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/stretchr/testify/require"
@@ -394,4 +395,69 @@ func getTestV2NInterface() *networkinterface.NetworkInterface {
 		DomainNameServers:    []string{nameServer},
 		DomainNameSearchList: []string{searchDomainName},
 	}
+}
+
+func TestCreatePortMapPluginConfig(t *testing.T) {
+	portMaps := []tasknetworkconfig.PortMapEntry{
+		{
+			HostPort:      8080,
+			ContainerPort: 80,
+			Protocol:      "tcp",
+		},
+		{
+			HostPort:      8443,
+			ContainerPort: 443,
+			Protocol:      "tcp",
+			HostIP:        "0.0.0.0",
+		},
+	}
+
+	expected := &ecscni.PortMapConfig{
+		CNIConfig: ecscni.CNIConfig{
+			NetNSPath:      netNSPath,
+			CNISpecVersion: cniSpecVersion,
+			CNIPluginName:  PortMapPluginName,
+		},
+	}
+	// Convert to ecscni.PortMapEntry for expected result
+	var expectedPortMaps []ecscni.PortMapEntry
+	for _, pm := range portMaps {
+		expectedPortMaps = append(expectedPortMaps, ecscni.PortMapEntry{
+			HostPort:      pm.HostPort,
+			ContainerPort: pm.ContainerPort,
+			Protocol:      pm.Protocol,
+			HostIP:        pm.HostIP,
+		})
+	}
+	expected.RuntimeConfig.PortMaps = expectedPortMaps
+
+	actual := createPortMapPluginConfig(netNSPath, portMaps)
+
+	expectedJSON, err := json.Marshal(expected)
+	require.NoError(t, err)
+	actualJSON, err := json.Marshal(actual)
+	require.NoError(t, err)
+
+	require.Equal(t, expectedJSON, actualJSON)
+}
+
+func TestCreatePortMapPluginConfigEmpty(t *testing.T) {
+	var portMaps []tasknetworkconfig.PortMapEntry
+
+	expected := &ecscni.PortMapConfig{
+		CNIConfig: ecscni.CNIConfig{
+			NetNSPath:      netNSPath,
+			CNISpecVersion: cniSpecVersion,
+			CNIPluginName:  PortMapPluginName,
+		},
+	}
+
+	actual := createPortMapPluginConfig(netNSPath, portMaps)
+
+	expectedJSON, err := json.Marshal(expected)
+	require.NoError(t, err)
+	actualJSON, err := json.Marshal(actual)
+	require.NoError(t, err)
+
+	require.Equal(t, expectedJSON, actualJSON)
 }

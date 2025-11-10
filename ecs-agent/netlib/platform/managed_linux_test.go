@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
 	mock_ec2 "github.com/aws/amazon-ecs-agent/ecs-agent/ec2/mocks"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	mock_ecscni2 "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni/mocks_ecscni"
@@ -39,6 +40,7 @@ import (
 	mock_oswrapper "github.com/aws/amazon-ecs-agent/ecs-agent/utils/oswrapper/mocks"
 	mock_volume "github.com/aws/amazon-ecs-agent/ecs-agent/volume/mocks"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -406,7 +408,11 @@ func TestBuildHostDaemonNamespaceConfig(t *testing.T) {
 				common: *commonPlatform,
 			}
 
-			namespaces, err := ml.buildHostDaemonNamespaceConfig(tt.taskID)
+			// Create a minimal task payload for the existing test
+			taskPayload := &ecsacs.Task{
+				Containers: []*ecsacs.Container{{}},
+			}
+			namespaces, err := ml.buildHostDaemonNamespaceConfig(tt.taskID, taskPayload)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -598,4 +604,116 @@ func TestManagedLinux_CreateDNSConfig(t *testing.T) {
 		err := ml.CreateDNSConfig(taskID, netns)
 		require.NoError(t, err)
 	})
+}
+
+func TestBuildHostDaemonNamespaceConfigWithPortMaps(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	taskID := "daemon-task-1"
+	taskPayload := &ecsacs.Task{
+		Containers: []*ecsacs.Container{
+			{
+				PortMappings: []*ecsacs.PortMapping{
+					{
+						HostPort:      aws.Int64(8080),
+						ContainerPort: aws.Int64(80),
+						Protocol:      aws.String("tcp"),
+					},
+					{
+						HostPort:      aws.Int64(8443),
+						ContainerPort: aws.Int64(443),
+						Protocol:      aws.String("tcp"),
+					},
+				},
+			},
+			{
+				PortMappings: []*ecsacs.PortMapping{
+					{
+						HostPort:      aws.Int64(9090),
+						ContainerPort: aws.Int64(90),
+						Protocol:      aws.String("udp"),
+					},
+				},
+			},
+		},
+	}
+
+	mockMetadataClient := mock_ec2.NewMockEC2MetadataClient(ctrl)
+	mockNet := mock_netwrapper.NewMockNet(ctrl)
+	netLink := mock_netlinkwrapper.NewMockNetLink(ctrl)
+	mockNsUtil := mock_ecscni.NewMockNetNSUtil(ctrl)
+
+	// Setup mocks for metadata calls
+	mockMetadataClient.EXPECT().GetMetadata(PrivateIPv4Address).Return("10.194.20.1", nil).Times(1)
+	mockMetadataClient.EXPECT().GetMetadata(MacResource).Return(macAddress, nil).Times(1)
+	mockMetadataClient.EXPECT().GetMetadata(InstanceIDResource).Return("i-1234567890abcdef0", nil).Times(1)
+	mockMetadataClient.EXPECT().GetMetadata(fmt.Sprintf(IPv4SubNetCidrBlock, macAddress)).
+		Return("10.194.20.0/20", nil).
+		Times(1)
+
+	testMac, err := net.ParseMAC(macAddress)
+	require.NoError(t, err)
+	link1 := &netlink.Dummy{LinkAttrs: netlink.LinkAttrs{HardwareAddr: testMac}}
+	netLink.EXPECT().LinkList().Return([]netlink.Link{link1}, nil)
+	routes := []netlink.Route{
+		{
+			Gw:        nil,
+			Dst:       nil,
+			LinkIndex: 0,
+		},
+		{
+			Gw:        net.ParseIP("10.194.20.1"),
+			Dst:       nil,
+			LinkIndex: 0,
+		},
+	}
+	netLink.EXPECT().RouteList(link1, netlink.FAMILY_V4).Return(routes, nil).Times(1)
+	netLink.EXPECT().RouteList(link1, netlink.FAMILY_V6).Return(nil, nil).Times(1)
+
+	testIface := []net.Interface{
+		{
+			HardwareAddr: testMac,
+			Name:         "eth1",
+		},
+	}
+	mockNet.EXPECT().Interfaces().Return(testIface, nil).Times(1)
+	mockNsUtil.EXPECT().GetNetNSPath("host-daemon").Return("/var/run/netns/host-daemon").Times(1)
+
+	commonPlatform := &common{
+		net:     mockNet,
+		netlink: netLink,
+		nsUtil:  mockNsUtil,
+	}
+	ml := &managedLinux{
+		client: mockMetadataClient,
+		common: *commonPlatform,
+	}
+
+	namespaces, err := ml.buildHostDaemonNamespaceConfig(taskID, taskPayload)
+
+	require.NoError(t, err)
+	require.NotNil(t, namespaces)
+	require.Len(t, namespaces, 1)
+
+	ns := namespaces[0]
+	// Verify port mappings were extracted correctly
+	expectedPortMaps := []tasknetworkconfig.PortMapEntry{
+		{
+			HostPort:      8080,
+			ContainerPort: 80,
+			Protocol:      "tcp",
+		},
+		{
+			HostPort:      8443,
+			ContainerPort: 443,
+			Protocol:      "tcp",
+		},
+		{
+			HostPort:      9090,
+			ContainerPort: 90,
+			Protocol:      "udp",
+		},
+	}
+	assert.Equal(t, expectedPortMaps, ns.PortMaps)
 }

@@ -26,6 +26,7 @@ import (
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 
 	"github.com/containernetworking/cni/pkg/types"
 )
@@ -274,7 +275,7 @@ func createServiceConnectCNIConfig(
 
 func createPortMapPluginConfig(
 	netNSPath string,
-	portMaps []ecscni.PortMapEntry,
+	portMaps []tasknetworkconfig.PortMapEntry,
 ) ecscni.PluginConfig {
 	cniConfig := ecscni.CNIConfig{
 		NetNSPath:      netNSPath,
@@ -285,7 +286,18 @@ func createPortMapPluginConfig(
 	portMapConfig := &ecscni.PortMapConfig{
 		CNIConfig: cniConfig,
 	}
-	portMapConfig.RuntimeConfig.PortMaps = portMaps
+	
+	// Convert tasknetworkconfig.PortMapEntry to ecscni.PortMapEntry
+	var cniPortMaps []ecscni.PortMapEntry
+	for _, pm := range portMaps {
+		cniPortMaps = append(cniPortMaps, ecscni.PortMapEntry{
+			HostPort:      pm.HostPort,
+			ContainerPort: pm.ContainerPort,
+			Protocol:      pm.Protocol,
+			HostIP:        pm.HostIP,
+		})
+	}
+	portMapConfig.RuntimeConfig.PortMaps = cniPortMaps
 
 	return portMapConfig
 }

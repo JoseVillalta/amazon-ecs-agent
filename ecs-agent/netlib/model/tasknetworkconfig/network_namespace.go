@@ -19,12 +19,19 @@ import (
 
 	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 )
+
+// PortMapEntry corresponds to a single entry in the port_mappings argument
+type PortMapEntry struct {
+	HostPort      int    `json:"hostPort"`
+	ContainerPort int    `json:"containerPort"`
+	Protocol      string `json:"protocol"`
+	HostIP        string `json:"hostIP,omitempty"`
+}
 
 // NetworkNamespace is model representing each network namespace.
 type NetworkNamespace struct {
@@ -46,7 +53,7 @@ type NetworkNamespace struct {
 	ServiceConnectConfig *serviceconnect.ServiceConnectConfig
 
 	// PortMaps holds port mapping entries for the particular netns.
-	PortMaps []ecscni.PortMapEntry
+	PortMaps []PortMapEntry
 
 	KnownState   status.NetworkStatus
 	DesiredState status.NetworkStatus
