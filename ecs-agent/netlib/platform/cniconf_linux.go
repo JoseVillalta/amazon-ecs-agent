@@ -179,15 +179,17 @@ func createDaemonBridgePluginConfig(netNSPath string, ipComp ipcompatibility.IPC
 			CNISpecVersion: cniSpecVersion,
 			CNIPluginName:  IPAMPluginName,
 		},
-		IPV4Subnet: ECSSubNet,
-		IPV4Routes: ipv4Routes,
-		IPV6Routes: ipv6Routes,
-		ID:         netNSPath,
+		IPV4Subnet:  ECSSubNet,
+		IPV4Address: DaemonNamespaceIPv4,
+		IPV4Routes:  ipv4Routes,
+		IPV6Routes:  ipv6Routes,
+		ID:          netNSPath,
 	}
 
-	// Add IPv6 subnet and gateway if IPv6 compatible
+	// Add IPv6 subnet, gateway, and static address if IPv6 compatible.
 	if ipComp.IsIPv6Compatible() {
 		ipamConfig.IPV6Subnet = ECSSubNetIPv6
+		ipamConfig.IPV6Address = DaemonNamespaceIPv6
 		ipamConfig.IPV6Gateway = DaemonBridgeGatewayIPv6
 	}
 

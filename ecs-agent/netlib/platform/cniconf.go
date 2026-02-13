@@ -21,9 +21,12 @@ const (
 	ECSSubNet     = "169.254.172.0/22"
 	AgentEndpoint = "169.254.170.2/32"
 
-	// Daemon-bridge networking constants
+	// Daemon-bridge networking constants.
 	DaemonBridgeGatewayIP   = "169.254.172.1"
 	DefaultRouteDestination = "0.0.0.0/0"
+	// DaemonNamespaceIPv4 is the static IPv4 address assigned to daemon namespace interfaces.
+	// The address includes the /22 prefix length to match the ECS subnet.
+	DaemonNamespaceIPv4 = "169.254.172.2/22"
 
 	// IPv6 daemon-bridge networking constants
 	// Using fd00:ec2::172:0/112 as a unique local address (ULA) subnet for ECS internal communication.
@@ -33,6 +36,9 @@ const (
 	ECSSubNetIPv6               = "fd00:ec2::172:0/112"
 	DaemonBridgeGatewayIPv6     = "fd00:ec2::172:1"
 	DefaultRouteDestinationIPv6 = "::/0"
+	// DaemonNamespaceIPv6 is the static IPv6 address assigned to daemon namespace interfaces.
+	// The address includes the /112 prefix length to match the ECS IPv6 subnet.
+	DaemonNamespaceIPv6 = "fd00:ec2::172:2/112"
 
 	CNIPluginLogFileEnv    = "ECS_CNI_LOG_FILE"
 	VPCCNIPluginLogFileEnv = "VPC_CNI_LOG_FILE"

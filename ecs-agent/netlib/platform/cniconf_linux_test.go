@@ -359,15 +359,21 @@ func getTestV2NInterface() *networkinterface.NetworkInterface {
 	}
 }
 
+// TestCreateDaemonBridgePluginConfig verifies that createDaemonBridgePluginConfig produces
+// correct CNI configurations for different IP compatibility modes, including static IP
+// address assignment for daemon namespaces.
+// **Validates: Requirements 2.1, 2.2, 3.1, 3.2, 4.1**
 func TestCreateDaemonBridgePluginConfig(t *testing.T) {
-	// Common CNI config for all test cases
+	t.Parallel()
+
+	// Common CNI config for all test cases.
 	cniConfig := ecscni.CNIConfig{
 		NetNSPath:      netNSPath,
 		CNISpecVersion: cniSpecVersion,
 		CNIPluginName:  BridgePluginName,
 	}
 
-	// Common routes
+	// Common routes.
 	_, agentRouteIPNet, _ := net.ParseCIDR(AgentEndpoint)
 	agentRoute := &types.Route{
 		Dst: *agentRouteIPNet,
@@ -387,7 +393,7 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 		GW:  bridgeGWv6,
 	}
 
-	for _, tc := range []struct {
+	tests := []struct {
 		name           string
 		ipComp         ipcompatibility.IPCompatibility
 		expectedConfig *ecscni.BridgeConfig
@@ -395,7 +401,7 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 		errorContains  string
 	}{
 		{
-			name:   "IPv4-only configuration",
+			name:   "IPv4-only configuration includes static IPv4 address",
 			ipComp: ipcompatibility.NewIPv4OnlyCompatibility(),
 			expectedConfig: &ecscni.BridgeConfig{
 				CNIConfig: cniConfig,
@@ -406,15 +412,16 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 						CNISpecVersion: cniSpecVersion,
 						CNIPluginName:  IPAMPluginName,
 					},
-					IPV4Subnet: ECSSubNet,
-					IPV4Routes: []*types.Route{agentRoute, defaultRouteIPv4},
-					ID:         netNSPath,
+					IPV4Subnet:  ECSSubNet,
+					IPV4Address: DaemonNamespaceIPv4,
+					IPV4Routes:  []*types.Route{agentRoute, defaultRouteIPv4},
+					ID:          netNSPath,
 				},
 			},
 			expectError: false,
 		},
 		{
-			name:   "IPv6-only configuration",
+			name:   "IPv6-only configuration includes static IPv6 address",
 			ipComp: ipcompatibility.NewIPv6OnlyCompatibility(),
 			expectedConfig: &ecscni.BridgeConfig{
 				CNIConfig: cniConfig,
@@ -426,8 +433,10 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 						CNIPluginName:  IPAMPluginName,
 					},
 					IPV4Subnet:  ECSSubNet,
-					IPV4Routes:  []*types.Route{agentRoute}, // ECS agent endpoint always included
+					IPV4Address: DaemonNamespaceIPv4,        // IPv4 address is always set for IPAM.
+					IPV4Routes:  []*types.Route{agentRoute}, // ECS agent endpoint always included.
 					IPV6Subnet:  ECSSubNetIPv6,
+					IPV6Address: DaemonNamespaceIPv6,
 					IPV6Gateway: DaemonBridgeGatewayIPv6,
 					IPV6Routes:  []*types.Route{defaultRouteIPv6},
 					ID:          netNSPath,
@@ -436,7 +445,7 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:   "Dual-stack configuration",
+			name:   "Dual-stack configuration includes both static IPv4 and IPv6 addresses",
 			ipComp: ipcompatibility.NewDualStackCompatibility(),
 			expectedConfig: &ecscni.BridgeConfig{
 				CNIConfig: cniConfig,
@@ -448,8 +457,10 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 						CNIPluginName:  IPAMPluginName,
 					},
 					IPV4Subnet:  ECSSubNet,
+					IPV4Address: DaemonNamespaceIPv4,
 					IPV4Routes:  []*types.Route{agentRoute, defaultRouteIPv4},
 					IPV6Subnet:  ECSSubNetIPv6,
+					IPV6Address: DaemonNamespaceIPv6,
 					IPV6Gateway: DaemonBridgeGatewayIPv6,
 					IPV6Routes:  []*types.Route{defaultRouteIPv6},
 					ID:          netNSPath,
@@ -463,19 +474,22 @@ func TestCreateDaemonBridgePluginConfig(t *testing.T) {
 			expectError:   true,
 			errorContains: "host is neither IPv4 nor IPv6 compatible",
 		},
-	} {
-		tc := tc
+	}
 
-		t.Run(tc.name, func(t *testing.T) {
-			actualConfig, err := createDaemonBridgePluginConfig(netNSPath, tc.ipComp)
+	for _, tt := range tests {
+		tt := tt // Capture range variable for parallel execution.
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-			if tc.expectError {
+			actualConfig, err := createDaemonBridgePluginConfig(netNSPath, tt.ipComp)
+
+			if tt.expectError {
 				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.errorContains)
+				require.Contains(t, err.Error(), tt.errorContains)
 				require.Nil(t, actualConfig)
 			} else {
 				require.NoError(t, err)
-				expected, err := json.Marshal(tc.expectedConfig)
+				expected, err := json.Marshal(tt.expectedConfig)
 				require.NoError(t, err)
 				actual, err := json.Marshal(actualConfig)
 				require.NoError(t, err)
