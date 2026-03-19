@@ -24,21 +24,20 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/ec2"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	netlibdata "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/ioutilwrapper"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/netlinkwrapper"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/netwrapper"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/oswrapper"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/volume"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/ioutilwrapper"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/netlinkwrapper"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/netwrapper"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/oswrapper"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/volume"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
@@ -124,13 +123,12 @@ func NewPlatform(
 			},
 		}, nil
 	case ManagedPlatform, ManagedDebugPlatform:
-		ec2Client, err := ec2.NewEC2MetadataClient(nil)
-		if err != nil {
-			return nil, err
+		if platformConfig.EC2Client == nil {
+			return nil, errors.New("EC2MetadataClient is required for managed platform")
 		}
 		return &managedLinux{
 			common: commonPlatform,
-			client: ec2Client,
+			client: platformConfig.EC2Client,
 		}, nil
 	}
 	return nil, errors.New("invalid platform: " + platformConfig.Name)

@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/ipcompatibility"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
-	loggerfield "github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/ipcompatibility"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
 )
 
 // iptablesAction enumerates different actions for the iptables command.
@@ -59,7 +58,7 @@ func modifyNetfilterEntry(table string, action iptablesAction, getNetfilterChain
 			"executable":      executable,
 			"args":            args,
 			"output":          string(output),
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return err
 	}
@@ -107,7 +106,7 @@ func enableSysctlSetting(key string, value string) error {
 			"key":             key,
 			"value":           value,
 			"output":          string(output),
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return err
 	}

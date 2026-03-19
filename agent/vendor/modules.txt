@@ -54,9 +54,6 @@ github.com/aws/amazon-ecs-agent/ecs-agent/manageddaemon
 github.com/aws/amazon-ecs-agent/ecs-agent/metrics
 github.com/aws/amazon-ecs-agent/ecs-agent/metrics/mocks
 github.com/aws/amazon-ecs-agent/ecs-agent/modeltransformer
-github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh
-github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface
-github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status
 github.com/aws/amazon-ecs-agent/ecs-agent/stats
 github.com/aws/amazon-ecs-agent/ecs-agent/tcs/client
 github.com/aws/amazon-ecs-agent/ecs-agent/tcs/handler
@@ -98,6 +95,16 @@ github.com/aws/amazon-ecs-agent/ecs-agent/wsclient/wsconn
 # github.com/aws/amazon-ecs-agent/ecs-agent/daemonimages/csidriver v0.0.0-20250814231752-7d5ec06fbcec => ../ecs-agent/daemonimages/csidriver
 ## explicit; go 1.23.0
 github.com/aws/amazon-ecs-agent/ecs-agent/daemonimages/csidriver/util
+# github.com/aws/amazon-ecs-agent/ecs-agent/netlib v0.0.0 => ../ecs-agent/netlib
+## explicit; go 1.24.0
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/attachment
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/arn
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/ttime
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface
+github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status
 # github.com/aws/aws-sdk-go v1.55.7
 ## explicit; go 1.19
 github.com/aws/aws-sdk-go/aws
@@ -120,8 +127,8 @@ github.com/aws/aws-sdk-go/private/protocol
 github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/private/util
-# github.com/aws/aws-sdk-go-v2 v1.36.6
-## explicit; go 1.22
+# github.com/aws/aws-sdk-go-v2 v1.41.4
+## explicit; go 1.24
 github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/aws/arn
 github.com/aws/aws-sdk-go-v2/aws/defaults
@@ -165,8 +172,8 @@ github.com/aws/aws-sdk-go-v2/credentials/endpointcreds/internal/client
 github.com/aws/aws-sdk-go-v2/credentials/processcreds
 github.com/aws/aws-sdk-go-v2/credentials/ssocreds
 github.com/aws/aws-sdk-go-v2/credentials/stscreds
-# github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30
-## explicit; go 1.22
+# github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.20
+## explicit; go 1.24
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds/internal/config
 # github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.72
@@ -262,8 +269,8 @@ github.com/aws/aws-sdk-go-v2/service/ssooidc/types
 github.com/aws/aws-sdk-go-v2/service/sts
 github.com/aws/aws-sdk-go-v2/service/sts/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/sts/types
-# github.com/aws/smithy-go v1.24.0
-## explicit; go 1.23
+# github.com/aws/smithy-go v1.24.2
+## explicit; go 1.24
 github.com/aws/smithy-go
 github.com/aws/smithy-go/auth
 github.com/aws/smithy-go/auth/bearer
@@ -771,4 +778,5 @@ sigs.k8s.io/json/internal/golang/encoding/json
 sigs.k8s.io/structured-merge-diff/v4/value
 # github.com/aws/amazon-ecs-agent/ecs-agent => ../ecs-agent
 # github.com/aws/amazon-ecs-agent/ecs-agent/daemonimages/csidriver => ../ecs-agent/daemonimages/csidriver
+# github.com/aws/amazon-ecs-agent/ecs-agent/netlib => ../ecs-agent/netlib
 # github.com/aws/aws-sdk-go-v2/service/ecs => ../aws-sdk-go-v2/service/ecs

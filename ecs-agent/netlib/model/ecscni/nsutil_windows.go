@@ -19,7 +19,7 @@ package ecscni
 import (
 	"runtime"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/uuid"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/uuid"
 
 	"github.com/Microsoft/hcsshim/hcn"
 	"github.com/pkg/errors"

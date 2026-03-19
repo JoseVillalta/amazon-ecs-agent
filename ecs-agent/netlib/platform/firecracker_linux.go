@@ -19,8 +19,8 @@ import (
 
 	netlibdata "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"

@@ -6,19 +6,18 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/ec2"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/ipcompatibility"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
-	loggerfield "github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	netlibdata "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/ec2"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/ipcompatibility"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
+	utilsnet "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/net"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
-	utilsnet "github.com/aws/amazon-ecs-agent/ecs-agent/utils/net"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
@@ -272,7 +271,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 	macToNames, err3 := m.common.interfacesMACToName()
 	if err := goErr.Join(err1, err2, err3); err != nil {
 		logger.Error("Error fetching fields for default ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -291,7 +290,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 	ipComp, err := utilsnet.DetermineIPCompatibility(m.netlink, macAddress)
 	if err != nil {
 		logger.Error("Failed to determine IP compatibility of host ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -306,7 +305,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 		ipv6SubNet, err2 := m.client.GetMetadata(fmt.Sprintf(IPv6SubNetCidrBlock, macAddress))
 		if err := goErr.Join(err1, err2); err != nil {
 			logger.Error("Error fetching IPv6 fields for default ENI", logger.Fields{
-				loggerfield.Error: err,
+				logger.ErrorField: err,
 			})
 			return nil, err
 		}
@@ -325,7 +324,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 		ipv4SubNet, err2 := m.client.GetMetadata(fmt.Sprintf(IPv4SubNetCidrBlock, macAddress))
 		if err := goErr.Join(err1, err2); err != nil {
 			logger.Error("Error fetching IPv4 fields for default ENI", logger.Fields{
-				loggerfield.Error: err,
+				logger.ErrorField: err,
 			})
 			return nil, err
 		}
@@ -343,7 +342,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 	netInt, err := networkinterface.New(hostENI, DefaultArg, nil, macToNames)
 	if err != nil {
 		logger.Error("Failed to create the network interface", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -354,7 +353,7 @@ func (m *managedLinux) buildHostNetworkNamespaceConfig(taskID string) ([]*taskne
 	defaultNameSpace, err := tasknetworkconfig.NewNetworkNamespace(netNSName, "", 0, nil, netInt)
 	if err != nil {
 		logger.Error("Error building default network namespace for host mode", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -375,7 +374,7 @@ func (m *managedLinux) buildHostDaemonNamespaceConfig() ([]*tasknetworkconfig.Ne
 	macToNames, err3 := m.common.interfacesMACToName()
 	if err := goErr.Join(err1, err2, err3); err != nil {
 		logger.Error("Error fetching fields for default ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -394,7 +393,7 @@ func (m *managedLinux) buildHostDaemonNamespaceConfig() ([]*tasknetworkconfig.Ne
 	ipComp, err := utilsnet.DetermineIPCompatibility(m.netlink, macAddress)
 	if err != nil {
 		logger.Error("Failed to determine IP compatibility of host ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -424,7 +423,7 @@ func (m *managedLinux) configureIPv4ForHostENI(hostENI *ecsacs.ElasticNetworkInt
 	ipv4SubNet, err2 := m.client.GetMetadata(fmt.Sprintf(IPv4SubNetCidrBlock, macAddress))
 	if err := goErr.Join(err1, err2); err != nil {
 		logger.Error("Error fetching IPv4 fields for default ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return err
 	}
@@ -449,7 +448,7 @@ func (m *managedLinux) configureIPv6ForHostENI(hostENI *ecsacs.ElasticNetworkInt
 	ipv6SubNet, err2 := m.client.GetMetadata(fmt.Sprintf(IPv6SubNetCidrBlock, macAddress))
 	if err := goErr.Join(err1, err2); err != nil {
 		logger.Error("Error fetching IPv6 fields for default ENI", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return err
 	}
@@ -471,7 +470,7 @@ func (m *managedLinux) createDaemonNetworkNamespace(hostENI *ecsacs.ElasticNetwo
 	netInt, err := networkinterface.New(hostENI, DefaultArg, nil, macToNames)
 	if err != nil {
 		logger.Error("Failed to create the network interface", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -483,7 +482,7 @@ func (m *managedLinux) createDaemonNetworkNamespace(hostENI *ecsacs.ElasticNetwo
 	daemonNamespace, err := tasknetworkconfig.NewNetworkNamespace(netNSName, netNSPath, 0, nil, netInt)
 	if err != nil {
 		logger.Error("Error building default network namespace for daemon-bridge mode", logger.Fields{
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return nil, err
 	}
@@ -545,7 +544,7 @@ func (m *managedLinux) configureDaemonNetNS(ctx context.Context, taskID string, 
 			err = m.addDaemonBridgeNATRule(ipComp)
 			if err != nil {
 				logger.Warn("Failed to add NAT rule for daemon-bridge", logger.Fields{
-					loggerfield.Error: err,
+					logger.ErrorField: err,
 				})
 			}
 		} else {
@@ -633,7 +632,7 @@ func (m *managedLinux) StopDaemonNetNS(ctx context.Context, netNS *tasknetworkco
 		err = errors.Wrap(err, "failed to create daemon bridge plugin config to stop daemon netns")
 		logger.Error("StopDaemonNetNS failed", logger.Fields{
 			"netNSPath":       netNS.Path,
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 		return err
 	}
@@ -647,7 +646,7 @@ func (m *managedLinux) StopDaemonNetNS(ctx context.Context, netNS *tasknetworkco
 		err = errors.Wrap(err, "failed to stop daemon network namespace bridge")
 		logger.Error("StopDaemonNetNS failed", logger.Fields{
 			"netNSPath":       netNS.Path,
-			loggerfield.Error: err,
+			logger.ErrorField: err,
 		})
 	} else {
 		logger.Info("StopDaemonNetNS completed successfully", logger.Fields{

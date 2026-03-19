@@ -22,7 +22,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	ecsacs "github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
+	ecsacs "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	tasknetworkconfig "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 	types "github.com/aws/aws-sdk-go-v2/service/ecs/types"
 	gomock "github.com/golang/mock/gomock"

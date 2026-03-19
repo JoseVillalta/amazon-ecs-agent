@@ -22,7 +22,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	ecsacs "github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
+	ecsacs "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	data "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
 	appmesh "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	networkinterface "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"

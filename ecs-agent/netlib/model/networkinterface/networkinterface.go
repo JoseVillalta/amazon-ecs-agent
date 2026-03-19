@@ -21,9 +21,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
-	loggerfield "github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -347,7 +346,7 @@ func (ni *NetworkInterface) GetLinkName() string {
 		ifaces, err := netInterfaces()
 		if err != nil {
 			logger.Error("Failed to find link name:", logger.Fields{
-				loggerfield.Error: err,
+				logger.ErrorField: err,
 			})
 			return ""
 		}

@@ -25,7 +25,7 @@ import (
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/pkg/errors"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
 )
 
 const (

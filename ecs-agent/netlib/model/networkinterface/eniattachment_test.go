@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/api/attachment"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/attachment"
 
 	"github.com/stretchr/testify/assert"
 )

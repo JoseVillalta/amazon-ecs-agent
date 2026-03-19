@@ -17,16 +17,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/metrics"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
 	netlibdata "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/metrics"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/platform"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/netwrapper"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/volume"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/netwrapper"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/volume"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 	multierror "github.com/hashicorp/go-multierror"
@@ -50,9 +50,18 @@ type networkBuilder struct {
 func NewNetworkBuilder(
 	platformConfig platform.Config,
 	metricsFactory metrics.EntryFactory,
+	l logger.Logger,
 	volumeAccessor volume.TaskVolumeAccessor,
 	networkDao data.NetworkDataClient,
 	stateDBDir string) (NetworkBuilder, error) {
+
+	if l != nil {
+		logger.Set(l)
+	}
+	if metricsFactory == nil {
+		metricsFactory = &metrics.NopEntryFactory{}
+	}
+
 	pAPI, err := platform.NewPlatform(
 		platformConfig,
 		volumeAccessor,

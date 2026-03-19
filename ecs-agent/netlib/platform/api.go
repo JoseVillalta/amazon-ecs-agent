@@ -17,8 +17,9 @@ import (
 	"context"
 
 	netlibdata "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/ec2"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
@@ -95,4 +96,7 @@ type Config struct {
 	// ResolvConfPath specifies path to resolv.conf file for DNS config.
 	// Different platforms may have different paths for this file.
 	ResolvConfPath string
+	// EC2Client is an optional EC2 metadata client. Required for managed platforms.
+	// The caller is responsible for constructing this client.
+	EC2Client ec2.EC2MetadataClient
 }

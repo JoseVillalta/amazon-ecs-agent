@@ -23,17 +23,17 @@ import (
 	"net"
 	"testing"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/acs/model/ecsacs"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/metrics"
-	mock_metrics "github.com/aws/amazon-ecs-agent/ecs-agent/metrics/mocks"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/acs/model/ecsacs"
 	mock_data "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/data/mocks"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/metrics"
+	mock_metrics "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/metrics/mocks"
+	mock_netwrapper "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/netwrapper/mocks"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/serviceconnect"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
 	platform "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/platform"
 	mock_platform "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/platform/mocks"
-	mock_netwrapper "github.com/aws/amazon-ecs-agent/ecs-agent/utils/netwrapper/mocks"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
@@ -42,12 +42,12 @@ import (
 )
 
 func TestNewNetworkBuilder(t *testing.T) {
-	nbi, err := NewNetworkBuilder(platform.Config{Name: platform.WarmpoolPlatform}, nil, nil, nil, "")
+	nbi, err := NewNetworkBuilder(platform.Config{Name: platform.WarmpoolPlatform}, nil, nil, nil, nil, "")
 	nb := nbi.(*networkBuilder)
 	require.NoError(t, err)
 	require.NotNil(t, nb.platformAPI)
 
-	nbi, err = NewNetworkBuilder(platform.Config{Name: "invalid-platform"}, nil, nil, nil, "")
+	nbi, err = NewNetworkBuilder(platform.Config{Name: "invalid-platform"}, nil, nil, nil, nil, "")
 	require.Error(t, err)
 	require.Nil(t, nbi)
 }

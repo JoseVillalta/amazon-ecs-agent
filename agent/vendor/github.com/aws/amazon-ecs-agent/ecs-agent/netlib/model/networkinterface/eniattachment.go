@@ -18,11 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/api/attachment"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger/field"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/arn"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/utils/ttime"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/attachment"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/arn"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/ttime"
 
 	"github.com/pkg/errors"
 )
@@ -61,7 +60,7 @@ func getEniAttachmentLogFields(eni *ENIAttachment, duration time.Duration) logge
 
 	if eni.AttachmentType != ENIAttachmentTypeInstanceENI {
 		taskId, _ := arn.TaskIdFromArn(eni.TaskARN)
-		fields[field.TaskID] = taskId
+		fields[logger.TaskID] = taskId
 	}
 
 	return fields
@@ -206,7 +205,7 @@ func (eni *ENIAttachment) Fields() logger.Fields {
 	}
 
 	if eni.AttachmentType != ENIAttachmentTypeInstanceENI {
-		fields[field.TaskARN] = eni.TaskARN
+		fields[logger.TaskARN] = eni.TaskARN
 	}
 
 	return fields

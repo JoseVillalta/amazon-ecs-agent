@@ -23,14 +23,14 @@ import (
 	"os"
 	"testing"
 
+	mock_ioutilwrapper "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/ioutilwrapper/mocks"
+	mock_oswrapper "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/utils/oswrapper/mocks"
+	mock_volume "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/volume/mocks"
 	mock_ecscni2 "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni/mocks_ecscni"
 	mock_ecscni "github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni/mocks_nsutil"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/status"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/tasknetworkconfig"
-	mock_ioutilwrapper "github.com/aws/amazon-ecs-agent/ecs-agent/utils/ioutilwrapper/mocks"
-	mock_oswrapper "github.com/aws/amazon-ecs-agent/ecs-agent/utils/oswrapper/mocks"
-	mock_volume "github.com/aws/amazon-ecs-agent/ecs-agent/volume/mocks"
 
 	ecstypes "github.com/aws/aws-sdk-go-v2/service/ecs/types"
 	"github.com/golang/mock/gomock"

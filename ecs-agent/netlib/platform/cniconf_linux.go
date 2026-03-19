@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/amazon-ecs-agent/ecs-agent/ipcompatibility"
-	"github.com/aws/amazon-ecs-agent/ecs-agent/logger"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/ipcompatibility"
+	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/internal/logger"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/appmesh"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/ecscni"
 	"github.com/aws/amazon-ecs-agent/ecs-agent/netlib/model/networkinterface"
