@@ -192,13 +192,13 @@ func (m *managedLinux) configureRegularENI(ctx context.Context, netNSPath string
 	case status.NetworkReadyPull:
 		// The task metadata interface setup by bridge plugin is required only for the primary ENI.
 		if eni.IsPrimary() {
-			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath))
+			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath, ipcompatibility.NewIPCompatibility(len(eni.IPV4Addresses) > 0, len(eni.IPV6Addresses) > 0)))
 		}
 		cniNetConf = append(cniNetConf, createENIPluginConfigs(netNSPath, eni))
 		add = true
 	case status.NetworkDeleted:
 		if eni.IsPrimary() {
-			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath))
+			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath, ipcompatibility.NewIPCompatibility(len(eni.IPV4Addresses) > 0, len(eni.IPV6Addresses) > 0)))
 		}
 		cniNetConf = append(cniNetConf, createENIPluginConfigs(netNSPath, eni))
 		add = false
@@ -232,13 +232,13 @@ func (m *managedLinux) configureBranchENI(ctx context.Context, netNSPath string,
 	case status.NetworkReadyPull:
 		// Setup bridge to connect task network namespace to TMDS running in host's primary netns.
 		if eni.IsPrimary() {
-			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath))
+			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath, ipcompatibility.NewIPCompatibility(len(eni.IPV4Addresses) > 0, len(eni.IPV6Addresses) > 0)))
 		}
 		// We block IMDS access in awsvpc tasks.
 		cniNetConf = append(cniNetConf, createBranchENIConfig(netNSPath, eni, VPCBranchENIInterfaceTypeVlan, blockInstanceMetadataDefault))
 	case status.NetworkDeleted:
 		if eni.IsPrimary() {
-			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath))
+			cniNetConf = append(cniNetConf, m.createBridgePluginConfig(netNSPath, ipcompatibility.NewIPCompatibility(len(eni.IPV4Addresses) > 0, len(eni.IPV6Addresses) > 0)))
 		}
 		cniNetConf = append(cniNetConf, createBranchENIConfig(netNSPath, eni, VPCBranchENIInterfaceTypeVlan, blockInstanceMetadataDefault))
 		add = false
